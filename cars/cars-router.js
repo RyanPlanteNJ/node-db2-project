@@ -1,6 +1,6 @@
 const express = require('express');
-
 const db = require('../data/db-config.js');
+const { validateCars } = require('../middleware.js');
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ router.get('/:id', (req, res) => {
   });
 });
 
-router.post('/', (req, res) => {
+router.post('/', validateCars, (req, res) => {
   const carData = req.body;
   db('cars').insert(carData)
     .then(ids => {

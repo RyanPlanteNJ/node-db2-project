@@ -42,30 +42,33 @@ router.post('/', validateCars, (req, res) => {
     });
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', validateCars, async (req, res) => {
   const { id } = req.params;
   const changes = req.body;
 
-  db('cars').where({ id }).update(changes)
-  .then(count => {
-    if(count) {
-      res.status(200).json({ update: count });
-    } else {
-      res.status(404).json({ message: 'There is no car that matches that ID' });
-    }
-  })
-  .catch(err => {
-    res.status(500).json({ message: 'Unable to update car information'});
-  });
+try{
+  const addCar = await db('cars').where({ id }).update(changes)
+if(addCar) {
+    db('cars').where({ id }).first()
+    .then(updatedCar => {
+      res.status(200).json(updatedCar);
+    });
+} else {
+  res.status(400).json({message: 'Car Id does not exist' });
+  }
+} catch(err) {
+    console.log('PUT error', err);
+    res.status(500).json({message:' Failed to update information to database'});
+  }
 });
 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deleteCar = await db.del().from('cars').where( {id })
+    const deleteCar = await db.del().from('cars').where( { id })
     if(deleteCar) {
-      res.status(200).json({deleted: deleteCar});
+      res.status(200).json(deleteCar);
     } else {
       res.status(404).json({ message: 'There is no car that matches that ID' });
     }
